@@ -16,6 +16,11 @@ import {
   import fs from "fs";
 import path from "path";
 import http from "http";
+import {
+    getCanonicalIgn,
+    isIgnAvailable,
+    setRegistration,
+  } from "./utils/registrationStore.js";
   
   dotenv.config();
   
@@ -74,6 +79,25 @@ import http from "http";
 
       await interaction.deferUpdate();
 
+      const trimmedIgn = ign.trim();
+      const canonicalIgn = getCanonicalIgn(trimmedIgn);
+
+      if (!canonicalIgn) {
+        await interaction.followUp({
+          content: "⚠️ That IGN is not on the approved list.",
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      if (!isIgnAvailable(canonicalIgn, interaction.user.id)) {
+        await interaction.followUp({
+          content: `⚠️ ${canonicalIgn} is already registered.`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
       let member;
       try {
         member = await interaction.guild.members.fetch(interaction.user.id);
@@ -85,13 +109,28 @@ import http from "http";
         return;
       }
 
-      const newNick = `[${className}] ${ign}`;
+      const newNick = `[${className}] ${canonicalIgn}`;
 
       try {
         await member.setNickname(newNick);
       } catch {
         await interaction.followUp({
           content: "⚠️ I couldn’t change your nickname. Please check my permissions.",
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      try {
+        setRegistration(canonicalIgn, {
+          userId: interaction.user.id,
+          className,
+        });
+      } catch (error) {
+        console.error("❌ Failed to persist registration:", error);
+        await interaction.followUp({
+          content:
+            "⚠️ I updated your nickname but couldn't save the registration. Please contact an officer.",
           flags: MessageFlags.Ephemeral,
         });
         return;
