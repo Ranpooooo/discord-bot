@@ -14,7 +14,8 @@ import {
   } from "discord.js";
   import dotenv from "dotenv";
   import fs from "fs";
-  import path from "path";
+import path from "path";
+import http from "http";
   
   dotenv.config();
   
@@ -124,5 +125,15 @@ import {
     }
   });
   
-  client.login(process.env.TOKEN);
+client.login(process.env.TOKEN);
+
+const port = process.env.PORT || 3000;
+http
+  .createServer((_, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Bot is running\n");
+  })
+  .listen(port, () => {
+    console.log(`🌐 Healthcheck server listening on port ${port}`);
+  });
   
