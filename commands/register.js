@@ -10,10 +10,6 @@ import {
     EmbedBuilder,
     MessageFlags,
   } from "discord.js";
-import {
-    getCanonicalIgn,
-    isIgnAvailable,
-  } from "../utils/registrationStore.js";
   
   export const data = new SlashCommandBuilder()
     .setName("register")
@@ -43,51 +39,34 @@ import {
       time: 60000,
     });
   
-    const rawIgn = submitted.fields.getTextInputValue("ignInput").trim();
-    const canonicalIgn = getCanonicalIgn(rawIgn ?? "");
-
-    if (!rawIgn || !canonicalIgn) {
-      await submitted.reply({
-        content: "⚠️ That IGN is not on the approved list. Please contact an officer to get whitelisted.",
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    if (!isIgnAvailable(canonicalIgn, submitted.user.id)) {
-      await submitted.reply({
-        content: `⚠️ ${canonicalIgn} is already registered.`,
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
+    const ign = submitted.fields.getTextInputValue("ignInput");
   
     // Step 2 — Send class selection buttons (ephemeral)
     const embed = new EmbedBuilder()
       .setColor("Blue")
       .setTitle("Select Your Class")
       .setDescription(
-        `IGN: **${canonicalIgn}**\n\nClick a button below to choose your class:`
+        `IGN: **${ign}**\n\nClick a button below to choose your class:`
       );
   
     const buttons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`class_Berserker_${canonicalIgn}`)
+        .setCustomId(`class_Berserker_${ign}`)
         .setLabel("Berserker")
         .setEmoji("🪓")
         .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
-        .setCustomId(`class_Warlord_${canonicalIgn}`)
+        .setCustomId(`class_Warlord_${ign}`)
         .setLabel("Warlord")
         .setEmoji("🛡️")
         .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
-        .setCustomId(`class_Archer_${canonicalIgn}`)
+        .setCustomId(`class_Archer_${ign}`)
         .setLabel("Archer")
         .setEmoji("🏹")
         .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
-        .setCustomId(`class_Skald_${canonicalIgn}`)
+        .setCustomId(`class_Skald_${ign}`)
         .setLabel("Skald")
         .setEmoji("🎵")
         .setStyle(ButtonStyle.Primary)
